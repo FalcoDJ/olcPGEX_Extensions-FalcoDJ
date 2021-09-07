@@ -63,6 +63,10 @@
  Anywhere else in your code:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     InputMap JumpMap;
+    JumpMap.Keys = {
+        olc::Key::SPACE,
+        olc::KEY::Up
+    }
     if (JumpMap.Pressed)
     {
         //JUMP
