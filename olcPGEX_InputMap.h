@@ -87,7 +87,7 @@ namespace olc
     class InputMapHandler : public olc::PGEX
     {
     public: //Public Functions
-        static InputMapHandler &Get()
+        static InputMapHandler &rGet()
         {
             static InputMapHandler imh;
             return imh;
@@ -114,7 +114,7 @@ namespace olc
     class InputMap
     {
     public:
-        InputMap() { InputMapHandler::Get().RegisterInputMap(this); }
+        InputMap() { InputMapHandler::rGet().RegisterInputMap(this); }
         ~InputMap() {}
         std::vector<olc::Key> Keys;
 
@@ -132,6 +132,9 @@ void olc::InputMapHandler::OnBeforeUserUpdate(float& fElapsedTime)
 {
     for (auto &CurrentInputMap : mInputMaps)
     {
+        if (CurrentInputMap == nullptr)
+        continue;
+
         bool is_held = false;
         bool is_pressed = false;
         bool is_released = false;
