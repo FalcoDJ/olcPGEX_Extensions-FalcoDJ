@@ -80,16 +80,17 @@
 #ifndef OLC_PGEX_LAYER_CONTROLLER_H
 #define OLC_PGEX_LAYER_CONTROLLER_H
 
+#include <iostream>
 #include "olcPixelGameEngine.h"
 
 namespace olc
 {
     class LayerController : public olc::PGEX
     {
-    private:
+    private: // Private Functions
         LayerController() : olc::PGEX(true) {}
 
-        static LayerController& Get()
+        static LayerController& rGet()
         {
             static LayerController instance;
             return instance;
@@ -97,43 +98,73 @@ namespace olc
 
         void OnAfterUserCreate() override
         {
-            Get().pge->SetDrawTarget(nullptr);
-            Get().pge->Clear(olc::BLANK);
+            rGet().pge->SetDrawTarget(nullptr);
+            rGet().pge->SetPixelMode(olc::Pixel::ALPHA);
+            rGet().pge->Clear(olc::BLANK);
         }
 
-        std::map<std::string,int> m_LayerIdMap;
-
-    public:
-        static void CreateLayer(std::string layer_name)
+        void OnAfterUserUpdate(float fElapsedTime) override
         {
-            auto& m = Get().m_LayerIdMap;
-            m[layer_name] = Get().pge->CreateLayer();
-            Get().pge->EnableLayer(m[layer_name], true);
-            Get().pge->SetDrawTarget(m[layer_name]);
-            Get().pge->SetPixelMode(olc::Pixel::ALPHA);
-            Get().pge->Clear(olc::BLANK);
-            Get().pge->SetDrawTarget(nullptr);
+            m_ClearedDebugLayer = false;
         }
-        static void SetActiveLayer(std::string layer_name)
+
+    public: // Public Functions
+        static void ClearCurrentLayer(olc::Pixel clearColor)
         {
-            auto& m = Get().m_LayerIdMap;
+            rGet().pge->Clear(clearColor);
+        }
+        static void SafelyClearDebuglayer(olc::Pixel clearColor)
+        {
+            // Clear Debug Layer If It Hasn't Been Cleared This Frame!
+            bool &has_been_cleared = rGet().m_ClearedDebugLayer;
 
-            auto keyvaluepair = m.find(layer_name);
+            if (!has_been_cleared)
+                ClearCurrentLayer(clearColor), has_been_cleared = true;
+        }
+        static void CreateLayer(const std::string &layerName)
+        {
+            auto& m = rGet().m_LayerIdMap;
+            m[layerName] = rGet().pge->CreateLayer();
+            rGet().pge->EnableLayer(m[layerName], true);
+            rGet().pge->SetDrawTarget(m[layerName]);
+            rGet().pge->SetPixelMode(olc::Pixel::ALPHA);
+            rGet().pge->Clear(olc::BLANK);
+            rGet().pge->SetDrawTarget(nullptr);
+        }
+        static void SetActiveLayer(const std::string &layerName)
+        {
+            auto& m = rGet().m_LayerIdMap;
 
-            if (keyvaluepair != m.end())
+            auto key_value_pair = m.find(layerName);
+
+            rGet().m_PreviousLayer = rGet().m_CurrentLayer;
+            rGet().m_CurrentLayer = layerName;
+
+            if (key_value_pair != m.end())
             {
-                Get().pge->SetDrawTarget(keyvaluepair->second);
+                rGet().pge->SetDrawTarget(key_value_pair->second);
             }
             else
             {
-                m[layer_name] = Get().pge->CreateLayer();
-                Get().pge->EnableLayer(m[layer_name], true);
-                Get().pge->SetDrawTarget(m[layer_name]);
-                Get().pge->SetPixelMode(olc::Pixel::ALPHA);
-                Get().pge->Clear(olc::BLANK);
+                rGet().CreateLayer(layerName);
+                rGet().pge->SetDrawTarget(key_value_pair->second);
             }
-            
         }
+        static void SetActiveLayerToDebugLayer()
+        {
+            SetActiveLayer(rGet().m_DebugLayer);
+        }
+        static std::string GetPreviousLayer()
+        {
+            return rGet().m_PreviousLayer;
+        }
+    
+    private: // Private Variables
+        std::map<std::string,int> m_LayerIdMap;
+        std::string m_CurrentLayer;
+        std::string m_PreviousLayer;
+        std::string m_DebugLayer = "DEBUG_LAYER";
+        bool m_ClearedDebugLayer = false;
     };
 };
 
