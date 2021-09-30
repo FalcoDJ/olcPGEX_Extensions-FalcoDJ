@@ -132,8 +132,9 @@ void olc::InputMapHandler::OnBeforeUserUpdate(float& fElapsedTime)
 {
     for (auto &CurrentInputMap : mInputMaps)
     {
-        if (CurrentInputMap == nullptr)
-        continue;
+        // Check to make sure that the map is valid
+        if (CurrentInputMap == nullptr || CurrentInputMap->Keys.empty())
+            continue;
 
         bool is_held = false;
         bool is_pressed = false;
