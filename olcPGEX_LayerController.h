@@ -101,6 +101,12 @@ namespace olc
             rGet().pge->SetDrawTarget(nullptr);
             rGet().pge->SetPixelMode(olc::Pixel::ALPHA);
             rGet().pge->Clear(olc::BLANK);
+
+            SetActiveLayerToDebugLayer();
+            auto key_value_pair = m_LayerIdMap.find(m_CurrentLayer);
+            rGet().pge->SetLayerTint(key_value_pair->second, olc::Pixel(255, 255, 255, 153));
+
+            rGet().pge->SetDrawTarget(nullptr);
         }
 
         void OnAfterUserUpdate(float fElapsedTime) override
@@ -112,14 +118,6 @@ namespace olc
         static void ClearCurrentLayer(olc::Pixel clearColor)
         {
             rGet().pge->Clear(clearColor);
-        }
-        static void SafelyClearDebuglayer(olc::Pixel clearColor)
-        {
-            // Clear Debug Layer If It Hasn't Been Cleared This Frame!
-            bool &has_been_cleared = rGet().m_ClearedDebugLayer;
-
-            if (!has_been_cleared)
-                ClearCurrentLayer(clearColor), has_been_cleared = true;
         }
         static void CreateLayer(const std::string &layerName)
         {
@@ -153,6 +151,16 @@ namespace olc
         static void SetActiveLayerToDebugLayer()
         {
             SetActiveLayer(rGet().m_DebugLayer);
+        }
+        static void SafelyClearDebuglayer(olc::Pixel clearColor)
+        {
+            SetActiveLayerToDebugLayer();
+            
+            // Clear Debug Layer If It Hasn't Been Cleared This Frame!
+            bool &has_been_cleared = rGet().m_ClearedDebugLayer;
+
+            if (!has_been_cleared)
+                ClearCurrentLayer(clearColor), has_been_cleared = true;
         }
         static std::string GetPreviousLayer()
         {

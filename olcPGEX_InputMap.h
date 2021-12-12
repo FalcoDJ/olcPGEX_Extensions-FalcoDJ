@@ -93,6 +93,8 @@ namespace olc
             return imh;
         }
 
+        static olc::vf2d GetMousePosition() { return rGet().pge->GetMousePos(); }
+
         void RegisterInputMap(olc::InputMap *im)
         {
             if (std::find(mInputMaps.begin(), mInputMaps.end(), im) == mInputMaps.end())
